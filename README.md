@@ -1,8 +1,12 @@
 # nanoz
 
-Nanoscale secure zlib library utilizing wuffs `std/zlib`.
+Nanoscale secure zlib decoding library utilizing wuffs `std/zlib`.
 
-nanoz provides very limited zlib decoding/encoding functionalities.
+nanoz provides very limited zlib decoding functionalities.
+
+## TODO
+
+* [ ] encoding(compress). wuffs doesn't provide zlib encoding feature at the moment.
 
 ## License
 
