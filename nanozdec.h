@@ -1,5 +1,14 @@
 /* SPDX-License-Identifier: Apache 2.0 */
 
+/* TODO:
+ *
+ * - [ ] Stream decoding API
+ * - [ ] Encoding API
+ *   - [ ] Stream encoding API
+ *
+ *
+ */
+
 #ifndef NANOZDEC_H_
 #define NANOZDEC_H_
 
@@ -20,6 +29,7 @@ nanoz_status_t nanoz_uncompress(const unsigned char *src_addr,
                                 unsigned char *dst_addr,
                                 uint64_t *uncompressed_size);
 
+
 #ifdef __cplusplus
 }
 #endif
@@ -33,7 +43,9 @@ nanoz_status_t nanoz_uncompress(const unsigned char *src_addr,
 #define WUFFS_CONFIG__MODULES
 #define WUFFS_CONFIG__MODULE__BASE
 #define WUFFS_CONFIG__MODULE__CRC32
+#define WUFFS_CONFIG__MODULE__ADLER32
 #define WUFFS_CONFIG__MODULE__DEFLATE
+#define WUFFS_CONFIG__MODULE__ZLIB
 
 #include "wuffs-v0.3.c"
 
