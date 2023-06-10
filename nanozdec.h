@@ -20,15 +20,26 @@ extern "C" {
 
 typedef enum nanoz_status {
   NANOZ_SUCCESS = 0,
-  NANOZ_ERROR = -1, // general error code.
+  NANOZ_ERROR = -1,  // general error code.
   NANOZ_ERROR_INVALID_ARGUMENT = -2,
+  NANOZ_ERROR_CORRUPTED = -3,
+  NANOZ_ERROR_INTERNAL = -4,
 } nanoz_status_t;
 
+/*
+ * @param[in] src_addr Source buffer address containing compressed data.
+ * @param[in] src_size Source buffer bytes.
+ * @param[in] uncompressed_size Bytes after uncompress.
+ * @param[out] dst_addr Destination buffer address. Must have enough memory to
+ * contain `uncompressed_size` bytes.
+ * @return NANOZ_SUCCESS upon success.
+ *
+ * TODO: return error message string.
+ */
 nanoz_status_t nanoz_uncompress(const unsigned char *src_addr,
                                 const uint64_t src_size,
-                                unsigned char *dst_addr,
-                                uint64_t *uncompressed_size);
-
+                                const uint64_t uncompressed_size,
+                                unsigned char *dst_addr);
 
 #ifdef __cplusplus
 }
@@ -49,10 +60,21 @@ nanoz_status_t nanoz_uncompress(const unsigned char *src_addr,
 
 #include "wuffs-v0.3.c"
 
+#define WORK_BUFFER_ARRAY_SIZE \
+  WUFFS_ZLIB__DECODER_WORKBUF_LEN_MAX_INCL_WORST_CASE
+
 nanoz_status_t nanoz_uncompress(const unsigned char *src_addr,
                                 const uint64_t src_size,
-                                unsigned char *dst_addr,
-                                uint64_t *uncompressed_size) {
+                                const uint64_t uncompressed_size,
+                                unsigned char *dst_addr) {
+// WUFFS_ZLIB__DECODER_WORKBUF_LEN_MAX_INCL_WORST_CASE = 1, its tiny bytes and
+// safe to alloc worbuf at heap location.
+#if WORK_BUFFER_ARRAY_SIZE > 0
+  uint8_t work_buffer_array[WORK_BUFFER_ARRAY_SIZE];
+#else
+  // Not all C/C++ compilers support 0-length arrays.
+  uint8_t work_buffer_array[1];
+#endif
 
   if (!src_addr) {
     return NANOZ_ERROR_INVALID_ARGUMENT;
@@ -66,14 +88,51 @@ nanoz_status_t nanoz_uncompress(const unsigned char *src_addr,
     return NANOZ_ERROR_INVALID_ARGUMENT;
   }
 
-  if (!uncompressed_size) {
+  if (uncompressed_size < 1) {
     return NANOZ_ERROR_INVALID_ARGUMENT;
   }
 
-  // TODO
-  return NANOZ_ERROR;
-}
+  wuffs_zlib__decoder dec;
+  wuffs_base__status status =
+      wuffs_zlib__decoder__initialize(&dec, sizeof dec, WUFFS_VERSION, 0);
+  if (!wuffs_base__status__is_ok(&status)) {
+    // wuffs_base__status__message(&status);
+    return NANOZ_ERROR_CORRUPTED;
+  }
 
+  // TODO: Streamed decoding?
+
+  wuffs_base__io_buffer dst;
+  dst.data.ptr = dst_addr;
+  dst.data.len = uncompressed_size;
+  dst.meta.wi = uncompressed_size;
+  dst.meta.ri = 0;
+  dst.meta.pos = 0;
+  dst.meta.closed = false;
+
+  wuffs_base__io_buffer src;
+  src.data.ptr = const_cast<uint8_t *>(src_addr);  // remove const
+  src.data.len = src_size;
+  src.meta.wi = 0;
+  src.meta.ri = 0;
+  src.meta.pos = 0;
+  src.meta.closed = false;
+
+  status = wuffs_zlib__decoder__transform_io(
+      &dec, &dst, &src,
+      wuffs_base__make_slice_u8(work_buffer_array, WORK_BUFFER_ARRAY_SIZE));
+
+  if (status.repr == wuffs_base__suspension__short_read) {
+    // ok
+  } else if (status.repr == wuffs_base__suspension__short_write) {
+    // read&write should succeed at once.
+    return NANOZ_ERROR_CORRUPTED;
+  } else {
+    return NANOZ_ERROR_CORRUPTED;
+  }
+
+  return NANOZ_SUCCESS;
+}
 #endif  // NANOZDEC_IMPLEMENTATION
 
 #endif /* NANOZDEC_H_ */
