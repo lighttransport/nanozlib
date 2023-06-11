@@ -13,6 +13,7 @@
 #define NANOZDEC_H_
 
 #include <stdint.h>
+#include <stdio.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -97,7 +98,7 @@ nanoz_status_t nanoz_uncompress(const unsigned char *src_addr,
       wuffs_zlib__decoder__initialize(&dec, sizeof dec, WUFFS_VERSION, 0);
   if (!wuffs_base__status__is_ok(&status)) {
     // wuffs_base__status__message(&status);
-    return NANOZ_ERROR_CORRUPTED;
+    return NANOZ_ERROR_INTERNAL;
   }
 
   // TODO: Streamed decoding?
@@ -105,7 +106,7 @@ nanoz_status_t nanoz_uncompress(const unsigned char *src_addr,
   wuffs_base__io_buffer dst;
   dst.data.ptr = dst_addr;
   dst.data.len = uncompressed_size;
-  dst.meta.wi = uncompressed_size;
+  dst.meta.wi = 0;
   dst.meta.ri = 0;
   dst.meta.pos = 0;
   dst.meta.closed = false;
@@ -113,7 +114,7 @@ nanoz_status_t nanoz_uncompress(const unsigned char *src_addr,
   wuffs_base__io_buffer src;
   src.data.ptr = const_cast<uint8_t *>(src_addr);  // remove const
   src.data.len = src_size;
-  src.meta.wi = 0;
+  src.meta.wi = src_size;
   src.meta.ri = 0;
   src.meta.pos = 0;
   src.meta.closed = false;
@@ -122,13 +123,22 @@ nanoz_status_t nanoz_uncompress(const unsigned char *src_addr,
       &dec, &dst, &src,
       wuffs_base__make_slice_u8(work_buffer_array, WORK_BUFFER_ARRAY_SIZE));
 
+  printf("dst.wi = %d\n", dst.meta.wi);
+  if (dst.meta.wi) {
+    dst.meta.ri = dst.meta.wi;
+    wuffs_base__io_buffer__compact(&dst);
+  }
+
   if (status.repr == wuffs_base__suspension__short_read) {
     // ok
   } else if (status.repr == wuffs_base__suspension__short_write) {
     // read&write should succeed at once.
     return NANOZ_ERROR_CORRUPTED;
-  } else {
-    return NANOZ_ERROR_CORRUPTED;
+  }
+
+  const char *stat_msg = wuffs_base__status__message(&status);
+  if (stat_msg) {
+    return NANOZ_ERROR_INTERNAL;
   }
 
   return NANOZ_SUCCESS;

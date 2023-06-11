@@ -6,10 +6,12 @@
 
 #include <vector>
 #include <iostream>
+#include <fstream>
 
 int main(int argc, char **argv) {
   if (argc < 3) {
     std::cout << "test compressed_data.bin uncompresed_size (dump_uncompressed_data)\n";
+    exit(-1);
   }
 
   bool dump = false;
@@ -25,7 +27,7 @@ int main(int argc, char **argv) {
     dump = true;
   }
 
-  std::ifstream f(filenme.c_str(), std::ifstream::binary);
+  std::ifstream f(filename.c_str(), std::ifstream::binary);
   if (!f) {
     std::cerr << "File not found or invalid.\n";
     return EXIT_FAILURE;
@@ -40,18 +42,20 @@ int main(int argc, char **argv) {
   f.seekg(0, f.end);
   size_t sz = static_cast<size_t>(f.tellg());
   f.seekg(0, f.beg);
+  std::cout << "file sz = " << sz << "\n";
 
   std::vector<unsigned char> src_buf;
   src_buf.resize(sz);
 
-  f.read(src_buf.data(), static_cast<std::streamsize>(sz));
+  f.read(reinterpret_cast<char *>(src_buf.data()), static_cast<std::streamsize>(sz));
 
   if (!f) {
     std::cerr << "Failed to read file.\n";
     return EXIT_FAILURE;
   }
 
-  nanoz_status_t ret = nanoz_uncompress(src_buf.data(), sz, uncompresed_size, uncompressed_data.data());
+  nanoz_status_t ret = nanoz_uncompress(src_buf.data(), sz, uncompressed_size, 
+    reinterpret_cast<unsigned char *>(uncompressed_data.data()));
   if (ret != NANOZ_SUCCESS) {
     std::cerr << "nanoz error: " << int(ret) << "\n";
     return EXIT_FAILURE;

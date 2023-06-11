@@ -5,6 +5,14 @@ Nanoscale secure zlib decoding library utilizing wuffs `std/zlib`.
 nanoz provides very limited zlib decoding functionalities.
 
 
+## Advantages and disadvantages
+
+* Advantage(s)
+  * Born to be super secure.
+    * No assert, No C++ exception. No segfault for corrupted/malcious zlib data.
+
+* Disadvantage(s)
+  * 50 KB or more in compiled binary(even compiled with `-Os`)
 
 ## Wuffs version
 
