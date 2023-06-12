@@ -1,11 +1,11 @@
 /* SPDX-License-Identifier: Apache 2.0 */
+/* Copyright 2023 - Present, Light Transport Entertainment Inc. */
 
 /* TODO:
  *
  * - [ ] Stream decoding API
  * - [ ] Encoding API
  *   - [ ] Stream encoding API
- *
  *
  */
 
