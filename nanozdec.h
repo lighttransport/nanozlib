@@ -27,6 +27,12 @@ typedef enum nanoz_status {
   NANOZ_ERROR_INTERNAL = -4,
 } nanoz_status_t;
 
+#if 0 // TODO
+/* Up to 4GB chunk. */
+typedef (*nanoz_stream_read)(const uint8_t *addr, uint8_t *dst_addr, const uint32_t read_bytes, const void *user_ptr);
+typedef (*nanoz_stream_write)(const uint8_t *addr, const uint32_t write_bytes, const void *user_ptr);
+#endif
+
 /*
  * @param[in] src_addr Source buffer address containing compressed data.
  * @param[in] src_size Source buffer bytes.
@@ -41,6 +47,11 @@ nanoz_status_t nanoz_uncompress(const unsigned char *src_addr,
                                 const uint64_t src_size,
                                 const uint64_t uncompressed_size,
                                 unsigned char *dst_addr);
+
+
+#if 0 // TODO
+nanoz_status_t nanoz_stream_uncompress(nanoz_stream_read *reader, nanoz_stream_writer *writer);
+#endif
 
 #ifdef __cplusplus
 }
@@ -123,7 +134,6 @@ nanoz_status_t nanoz_uncompress(const unsigned char *src_addr,
       &dec, &dst, &src,
       wuffs_base__make_slice_u8(work_buffer_array, WORK_BUFFER_ARRAY_SIZE));
 
-  printf("dst.wi = %d\n", dst.meta.wi);
   if (dst.meta.wi) {
     dst.meta.ri = dst.meta.wi;
     wuffs_base__io_buffer__compact(&dst);

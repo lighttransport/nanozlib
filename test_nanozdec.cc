@@ -42,7 +42,7 @@ int main(int argc, char **argv) {
   f.seekg(0, f.end);
   size_t sz = static_cast<size_t>(f.tellg());
   f.seekg(0, f.beg);
-  std::cout << "file sz = " << sz << "\n";
+  //std::cout << "file sz = " << sz << "\n";
 
   std::vector<unsigned char> src_buf;
   src_buf.resize(sz);
@@ -54,7 +54,7 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
 
-  nanoz_status_t ret = nanoz_uncompress(src_buf.data(), sz, uncompressed_size, 
+  nanoz_status_t ret = nanoz_uncompress(src_buf.data(), sz, uncompressed_size,
     reinterpret_cast<unsigned char *>(uncompressed_data.data()));
   if (ret != NANOZ_SUCCESS) {
     std::cerr << "nanoz error: " << int(ret) << "\n";

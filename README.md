@@ -14,6 +14,15 @@ nanoz provides very limited zlib decoding functionalities.
 * Disadvantage(s)
   * 50 KB or more in compiled binary(even compiled with `-Os`)
 
+## Example
+
+```
+$ make
+# 11 = uncompressed size
+$ ./test_nanozdec test/test-000.txt.zz 11
+```
+
+
 ## Wuffs version
 
 v0.3.0
