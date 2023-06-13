@@ -13,6 +13,7 @@ nanoz provides very limited zlib decoding functionalities.
 
 * Disadvantage(s)
   * 50 KB or more in compiled binary(even compiled with `-Os`)
+  * If you want picoscale secure zlib decoder, please take a look at zlib module in stb_image https://github.com/nothings/stb
 
 ## Example
 
