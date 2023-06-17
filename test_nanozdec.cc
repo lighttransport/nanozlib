@@ -1,5 +1,5 @@
-#define NANOZDEC_IMPLEMENTATION
-#include "nanozdec.h"
+#define NANOZLIB_IMPLEMENTATION
+#include "nanozlib.h"
 
 #include <cstdio>
 #include <cstdlib>

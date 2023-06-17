@@ -3,8 +3,8 @@
 #include <memory>
 #include <vector>
 
-#define NANOZDEC_IMPLEMENTATION
-#include "nanozdec.h"
+#define NANOZLIB_IMPLEMENTATION
+#include "nanozlib.h"
 
 static int uncompress_fuzz_main(const uint8_t *data, size_t size) {
   // first 8 bytes: uncompressed size
