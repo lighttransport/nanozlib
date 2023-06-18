@@ -10,7 +10,7 @@
 
 int main(int argc, char **argv) {
   if (argc < 3) {
-    std::cout << "test compressed_data.bin uncompresed_size (dump_uncompressed_data)\n";
+    std::cout << "test compressed_data.bin uncompressed_size (dump_uncompressed_data)\n";
     exit(-1);
   }
 
@@ -54,11 +54,18 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
 
-  nanoz_status_t ret = nanoz_uncompress(src_buf.data(), sz, uncompressed_size,
-    reinterpret_cast<unsigned char *>(uncompressed_data.data()));
+  uint64_t uncompressed_size_in_zlib{0};
+  nanoz_status_t ret = nanoz_uncompress(src_buf.data(), sz, uint64_t(uncompressed_data.size()),
+    reinterpret_cast<unsigned char *>(uncompressed_data.data()), &uncompressed_size_in_zlib);
   if (ret != NANOZ_SUCCESS) {
     std::cerr << "nanoz error: " << int(ret) << "\n";
     return EXIT_FAILURE;
+  }
+
+  if (uncompressed_size_in_zlib != uncompressed_size) {
+    std::cerr << "Expected uncompressed size " << uncompressed_size << ", but actual uncompressed size is " << uncompressed_size_in_zlib << "\n";
+    return EXIT_FAILURE;
+    
   }
 
   if (dump) {

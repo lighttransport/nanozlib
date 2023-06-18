@@ -32,22 +32,26 @@ typedef (*nanoz_stream_read)(const uint8_t *addr, uint8_t *dst_addr, const uint3
 typedef (*nanoz_stream_write)(const uint8_t *addr, const uint32_t write_bytes, const void *user_ptr);
 #endif
 
+/* TODO: Get uncompressed size function */
+
 /*
- * zlib decompression. Up to 2GB
+ * zlib decompression. Up to 2GB compressed data.
  *
  * @param[in] src_addr Source buffer address containing compressed data.
  * @param[in] src_size Source buffer bytes.
- * @param[in] uncompressed_size Bytes after uncompress.
- * @param[out] dst_addr Destination buffer address. Must have enough memory to
+ * @param[in] dst_size Destination buffer size. Must be larger than or equal to uncompressed size.
+ * @param[out] dst_addr Destination buffer address. 
+ * @param[out] uncompressed_size Uncompressed bytes. 
  * contain `uncompressed_size` bytes.
  * @return NANOZ_SUCCESS upon success.
  *
  * TODO: return error message string.
  */
 nanoz_status_t nanoz_uncompress(const unsigned char *src_addr,
-                                int src_size,
-                                uint64_t uncompressed_size,
-                                unsigned char *dst_addr);
+                                int32_t src_size,
+                                const uint64_t dst_size,
+                                unsigned char *dst_addr,
+                                uint64_t *uncompressed_size);
 
 /*
  * zlib compression. Currently we use stb's zlib_compress
@@ -89,9 +93,10 @@ nanoz_status_t nanoz_stream_uncompress(nanoz_stream_read *reader, nanoz_stream_w
   WUFFS_ZLIB__DECODER_WORKBUF_LEN_MAX_INCL_WORST_CASE
 
 nanoz_status_t nanoz_uncompress(const unsigned char *src_addr,
-                                const int src_size,
-                                const uint64_t uncompressed_size,
-                                unsigned char *dst_addr) {
+                                const int32_t src_size,
+                                const uint64_t dst_size,
+                                unsigned char *dst_addr,
+                                uint64_t *uncompressed_size_out) {
 // WUFFS_ZLIB__DECODER_WORKBUF_LEN_MAX_INCL_WORST_CASE = 1, its tiny bytes and
 // safe to alloc worbuf at heap location.
 #if WORK_BUFFER_ARRAY_SIZE > 0
@@ -113,7 +118,11 @@ nanoz_status_t nanoz_uncompress(const unsigned char *src_addr,
     return NANOZ_ERROR_INVALID_ARGUMENT;
   }
 
-  if (uncompressed_size < 1) {
+  if (dst_size < 1) {
+    return NANOZ_ERROR_INVALID_ARGUMENT;
+  }
+
+  if (!uncompressed_size_out) {
     return NANOZ_ERROR_INVALID_ARGUMENT;
   }
 
@@ -129,7 +138,7 @@ nanoz_status_t nanoz_uncompress(const unsigned char *src_addr,
 
   wuffs_base__io_buffer dst;
   dst.data.ptr = dst_addr;
-  dst.data.len = uncompressed_size;
+  dst.data.len = dst_size;
   dst.meta.wi = 0;
   dst.meta.ri = 0;
   dst.meta.pos = 0;
@@ -147,8 +156,11 @@ nanoz_status_t nanoz_uncompress(const unsigned char *src_addr,
       &dec, &dst, &src,
       wuffs_base__make_slice_u8(work_buffer_array, WORK_BUFFER_ARRAY_SIZE));
 
+  uint64_t uncompressed_size{0};
+
   if (dst.meta.wi) {
     dst.meta.ri = dst.meta.wi;
+    uncompressed_size = dst.meta.wi;
     wuffs_base__io_buffer__compact(&dst);
   }
 
@@ -163,6 +175,8 @@ nanoz_status_t nanoz_uncompress(const unsigned char *src_addr,
   if (stat_msg) {
     return NANOZ_ERROR_INTERNAL;
   }
+
+  (*uncompressed_size_out) = uncompressed_size;
 
   return NANOZ_SUCCESS;
 }

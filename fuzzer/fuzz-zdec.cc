@@ -37,8 +37,10 @@ static int uncompress_fuzz_main(const uint8_t *data, size_t size) {
   std::vector<unsigned char> dst;
   dst.resize(uncompressedSize);
 
+  uint64_t uncompressedSizeOut;
+
   nanoz_status_t s = nanoz_uncompress(reinterpret_cast<const unsigned char *>(data + 8),
-                                compressedSize, uncompressedSize, dst.data());
+                                compressedSize, dst.size(), dst.data(), &uncompressedSizeOut);
 
   (void)s;
 
