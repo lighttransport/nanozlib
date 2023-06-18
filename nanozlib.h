@@ -27,12 +27,14 @@ typedef enum nanoz_status {
 } nanoz_status_t;
 
 #if 0  // TODO
-/* Up to 4GB chunk. */
+/* Up to 2GB chunk. */
 typedef (*nanoz_stream_read)(const uint8_t *addr, uint8_t *dst_addr, const uint32_t read_bytes, const void *user_ptr);
 typedef (*nanoz_stream_write)(const uint8_t *addr, const uint32_t write_bytes, const void *user_ptr);
 #endif
 
 /*
+ * zlib decompression. Up to 2GB
+ *
  * @param[in] src_addr Source buffer address containing compressed data.
  * @param[in] src_size Source buffer bytes.
  * @param[in] uncompressed_size Bytes after uncompress.
@@ -43,8 +45,8 @@ typedef (*nanoz_stream_write)(const uint8_t *addr, const uint32_t write_bytes, c
  * TODO: return error message string.
  */
 nanoz_status_t nanoz_uncompress(const unsigned char *src_addr,
-                                const uint64_t src_size,
-                                const uint64_t uncompressed_size,
+                                int src_size,
+                                uint64_t uncompressed_size,
                                 unsigned char *dst_addr);
 
 /*
@@ -87,7 +89,7 @@ nanoz_status_t nanoz_stream_uncompress(nanoz_stream_read *reader, nanoz_stream_w
   WUFFS_ZLIB__DECODER_WORKBUF_LEN_MAX_INCL_WORST_CASE
 
 nanoz_status_t nanoz_uncompress(const unsigned char *src_addr,
-                                const uint64_t src_size,
+                                const int src_size,
                                 const uint64_t uncompressed_size,
                                 unsigned char *dst_addr) {
 // WUFFS_ZLIB__DECODER_WORKBUF_LEN_MAX_INCL_WORST_CASE = 1, its tiny bytes and
