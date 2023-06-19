@@ -5,10 +5,17 @@ Nanoscale secure zlib decoding utilizing wuffs `std/zlib`, and somewhat secure z
 nanozib provides very limited zlib decoding and encoding functionalities.
 nanozib is good to embed zlib support to your C/C++ application.
 
+No C++ exception, no C assert, fuzz tested.
+
 ## Requirements
 
 * C99, C++11 or later
 
+## Security
+
+* No fuzz issues found at the moment
+  * Which means no seg fault for corrupted/malcious zlib data
+   
 ## Advantages and disadvantages
 
 * Advantage(s)
