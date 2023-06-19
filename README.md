@@ -23,7 +23,7 @@ No C++ exception, no C assert, fuzz tested.
     * No assert, No C++ exception. No segfault for corrupted/malcious zlib data.
 
 * Disadvantage(s)
-  * Up to 2GB.
+  * Up to 2GB zlib data(No stream API yet)
   * 50 KB or more in compiled binary(even compiled with `-Os`)
     * If you want picoscale zlib decoder, please take a look at zlib module in stb_image https://github.com/nothings/stb
 
