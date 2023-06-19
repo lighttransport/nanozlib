@@ -40,8 +40,8 @@ typedef (*nanoz_stream_write)(const uint8_t *addr, const uint32_t write_bytes, c
  * @param[in] src_addr Source buffer address containing compressed data.
  * @param[in] src_size Source buffer bytes.
  * @param[in] dst_size Destination buffer size. Must be larger than or equal to uncompressed size.
- * @param[out] dst_addr Destination buffer address. 
- * @param[out] uncompressed_size Uncompressed bytes. 
+ * @param[out] dst_addr Destination buffer address.
+ * @param[out] uncompressed_size Uncompressed bytes.
  * contain `uncompressed_size` bytes.
  * @return NANOZ_SUCCESS upon success.
  *
@@ -52,6 +52,11 @@ nanoz_status_t nanoz_uncompress(const unsigned char *src_addr,
                                 const uint64_t dst_size,
                                 unsigned char *dst_addr,
                                 uint64_t *uncompressed_size);
+
+/*
+ * Compute compress bound.
+ */
+uint64_t nanoz_compressBound(uint64_t sourceLen);
 
 /*
  * zlib compression. Currently we use stb's zlib_compress
@@ -451,6 +456,15 @@ unsigned char *nanoz_compress(unsigned char *data, int data_len, int *out_len,
   NANOZ_MEMMOVE(nanoz__sbraw(out), out, *out_len);
   return (unsigned char *)nanoz__sbraw(out);
 }
+
+// from zlib
+uint64_t nanoz_compressBound(uint64_t sourceLen)
+{
+  // TODO: Overflow check?
+  return sourceLen + (sourceLen >> 12ull) + (sourceLen >> 14ull) +
+         (sourceLen >> 25ull) + 13ull;
+}
+
 
 #endif  // NANOZDEC_IMPLEMENTATION
 
